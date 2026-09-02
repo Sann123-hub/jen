@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Clone') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Sann123-hub/jenkinss.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                bat 'npm install'
+            }
+        }
+
+        stage('Build React App') {
+            steps {
+                bat 'npm run build'
+            }
+        }
+
+        stage('Test Build') {
+            steps {
+                bat 'dir dist'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '================================'
+            echo 'BUILD SUCCESSFUL'
+            echo 'React dist folder created'
+            echo '================================'
+        }
+    }
+}
