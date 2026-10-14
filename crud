@@ -1,0 +1,126 @@
+import { useState } from "react";
+
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [input, setInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [editId, setEditId] = useState(null);
+
+  
+  function saveItem() {
+    if (!input.trim()) {
+      alert("Please enter a value");
+      return;
+    }
+
+    if (editId !== null) {
+      setItems(
+        items.map((item) =>
+          item.id === editId
+            ? { ...item, name: input }
+            : item
+        )
+      );
+
+      setEditId(null);
+    } else {
+      setItems([
+        ...items,
+        { id: Date.now(), name: input }
+      ]);
+    }
+
+    setInput("");
+  }
+
+  
+  function deleteItem(id) {
+    setItems(items.filter((item) => item.id !== id));
+  }
+
+
+  function editItem(item) {
+    setInput(item.name);
+    setEditId(item.id);
+  }
+
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div style={{
+      padding: "30px",
+      fontFamily: "Arial",
+      maxWidth: "600px",
+      margin: "auto"
+    }}>
+      <h1>React CRUD Application</h1>
+
+      <h3>{editId !== null ? "Update Item" : "Add Item"}</h3>
+
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Enter item name"
+        style={{ padding: "10px", width: "60%" }}
+      />
+
+      <button onClick={saveItem} style={{ padding: "10px" }}>
+        {editId !== null ? "Update" : "Add"}
+      </button>
+
+      {editId !== null && (
+        <button
+          onClick={() => {
+            setInput("");
+            setEditId(null);
+          }}
+        >
+          Cancel
+        </button>
+      )}
+
+      <hr />
+
+      <h3>Search Items</h3>
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search item"
+        style={{ padding: "10px", width: "80%" }}
+      />
+
+      <h2>Item List</h2>
+
+      {filteredItems.length === 0 ? (
+        <p>No items found.</p>
+      ) : (
+        filteredItems.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: "1px solid gray",
+              padding: "12px",
+              margin: "10px 0"
+            }}
+          >
+            <span>{item.name}</span>{" "}
+
+            <button onClick={() => editItem(item)}>
+              Edit
+            </button>{" "}
+
+            <button onClick={() => deleteItem(item.id)}>
+              Delete
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
