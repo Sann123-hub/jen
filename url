@@ -1,0 +1,90 @@
+import { useState } from "react";
+
+export default function App() {
+  const [url, setUrl] = useState(
+    "https://www.themealdb.com/api/json/v1/1/search.php?s=chicken"
+  );
+
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+
+  async function fetchData() {
+    setLoading(true);
+    setError("");
+    setData([]);
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch API data");
+      }
+
+      const json = await response.json();
+
+      const list = Array.isArray(json)
+        ? json
+        : Object.values(json).find(Array.isArray) || [json];
+
+      setData(list);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredData = data.filter((item) =>
+    JSON.stringify(item)
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+
+  return (
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <h1> API Fetching App</h1>
+
+      <input
+        type="text"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="Enter API URL"
+        style={{ width: "70%", padding: "10px" }}
+      />
+
+      <button onClick={fetchData}>Fetch API</button>
+
+      {loading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <hr />
+
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search results"
+        style={{ padding: "10px" }}
+      />
+
+      <h2>Results</h2>
+
+      {filteredData.map((item, index) => (
+        <div
+          key={index}
+          style={{
+            border: "1px solid gray",
+            padding: "10px",
+            margin: "10px 0"
+          }}
+        >
+          <pre style={{ whiteSpace: "pre-wrap" }}>
+            {JSON.stringify(item, null, 2)}
+          </pre>
+        </div>
+      ))}
+    </div>
+  );
+}
