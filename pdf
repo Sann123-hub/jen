@@ -1,0 +1,166 @@
+import { useState } from "react";
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [input, setInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [file, setFile] = useState(null);
+  function saveItem() {
+    if (!input.trim()) {
+      alert("Please enter a value");
+      return;
+    }
+    if (editId !== null) {
+      setItems(
+        items.map((item) =>
+          item.id === editId
+            ? {
+                ...item,
+                name: input,
+                file: file || item.file
+              }
+            : item
+        )
+      );
+      setEditId(null);
+    } else {
+      setItems([
+        ...items,
+        {
+          id: Date.now(),
+          name: input,
+          file: file
+        }
+      ]);
+    }
+
+    setInput("");
+    setFile(null);
+  }
+  function deleteItem(id) {
+    setItems(items.filter((item) => item.id !== id));
+
+    if (editId === id) {
+      setEditId(null);
+      setInput("");
+      setFile(null);
+    }
+  }
+  function editItem(item) {
+    setInput(item.name);
+    setEditId(item.id);
+    setFile(null);
+  }
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+  function handleFileChange(e) {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+    if (
+      selectedFile.type !== "application/pdf" &&
+      !selectedFile.name.toLowerCase().endsWith(".pdf")
+    ) {
+      alert("Please upload a PDF file only");
+      e.target.value = "";
+      setFile(null);
+      return;
+    }
+    setFile(selectedFile);
+  }
+  return (
+    <div
+      style={{
+        padding: "30px",
+        fontFamily: "Arial",
+        maxWidth: "600px",
+        margin: "auto"
+      }}>
+      <h1>React CRUD Application</h1>
+      <h3>{editId !== null ? "Update Item" : "Add Item"}</h3>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Enter item name"
+        style={{ padding: "10px", width: "60%" }}
+      />
+      <br />
+      <br />
+      <label>Upload PDF: </label>
+      <input
+        type="file"
+        accept=".pdf,application/pdf"
+        onChange={handleFileChange}
+      />
+      {file && <p>Selected file: {file.name}</p>}
+      <br />
+      <button onClick={saveItem} style={{ padding: "10px" }}>
+        {editId !== null ? "Update" : "Add"}
+      </button>
+      {editId !== null && (
+        <button
+          onClick={() => {
+            setInput("");
+            setFile(null);
+            setEditId(null);
+          }}>
+          Cancel
+        </button>
+      )}
+      <hr /><h3>Search Items</h3>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search item"
+        style={{ padding: "10px", width: "80%" }}
+      />
+      <h2>Item List</h2>
+      {filteredItems.length === 0 ? (
+        <p>No items found.</p>
+      ) : (
+        filteredItems.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              border: "1px solid gray",
+              padding: "12px",
+              margin: "10px 0"
+            }}
+          >
+            <h3>{item.name}</h3>
+
+            {item.file ? (
+              <p>
+                PDF: {item.file.name}{" "}
+
+                <button
+                  onClick={() => {
+                    const pdfURL = URL.createObjectURL(item.file);
+                    window.open(pdfURL, "_blank");
+                  }}
+                >
+                  View PDF
+                </button>
+              </p>
+            ) : (
+              <p>No PDF uploaded</p>
+            )}
+
+            <button onClick={() => editItem(item)}>
+              Edit
+            </button>{" "}
+
+            <button onClick={() => deleteItem(item.id)}>
+              Delete
+            </button>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
